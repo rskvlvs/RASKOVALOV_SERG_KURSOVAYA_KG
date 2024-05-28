@@ -24,6 +24,8 @@ bool lightMode = true;
 
 
 ObjFile fishModel;//Объект с рыбкой
+ObjFile GuyModel;//Объект с рыбкой
+ObjFile Zamok; //Замок
 // Класс для представления рыбы
 class Fish {
 public:
@@ -372,6 +374,11 @@ void initRender(OpenGL *ogl)
 	//Объект с рыбкой
 	loadModel("SuperFish.obj", &fishModel);
 
+	//Объект подводный житель
+	loadModel("SuperGuy.obj", &GuyModel);
+
+	//Объект замок
+	loadModel("Zamok.obj", &Zamok);
 
 	// Добавляем рыб
 	std::vector<Vector3> controlPoints = {
@@ -552,6 +559,21 @@ void grani() {
 }
 
 void aquar() {
+	//Вывожу подводного парня
+	glPushMatrix(); 
+	glColor3f(0.83f, 0.69f, 0.22f);
+	glTranslated(-2, 3, 0);
+	glRotated(180, 0, 0, 1); 
+	glScalef(0.2f, 0.2f, 0.2f);
+	GuyModel.DrawObj();
+	glPopMatrix();
+	//Вывожу замок
+	glPushMatrix();
+	glColor3f(0.5f, 0.5f, 0.5f);
+	glTranslated(-2, -2, 0);
+	glScalef(0.3f, 0.3f, 0.3f);
+	Zamok.DrawObj();
+	glPopMatrix();
 	// Сначала вывожу низ аквариума
 	// Задняя сторона
 	glBegin(GL_QUADS);
