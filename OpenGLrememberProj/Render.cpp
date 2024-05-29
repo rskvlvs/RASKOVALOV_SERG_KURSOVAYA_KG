@@ -299,6 +299,7 @@ void keyUpEvent(OpenGL *ogl, int key)
 
 
 GLuint texId;
+GLuint tableTexture; 
 
 //выполняется перед первым рендером
 void initRender(OpenGL *ogl)
@@ -338,13 +339,41 @@ void initRender(OpenGL *ogl)
 	//отчистка памяти
 	free(texCharArray);
 	free(texarray);
-
 	//наводим шмон
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST); 
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
+
+	//Текстура стола
+	RGBTRIPLE* texarray1;
+
+	//массив символов, (высота*ширина*4      4, потомучто   выше, мы указали использовать по 4 байта на пиксель текстуры - R G B A)
+	char* texCharArray1;
+	int texW1, texH1;
+	//OpenGL::LoadBMP("texture.bmp", &texW, &texH, &texarray);
+	OpenGL::LoadBMP("tableTexture.bmp", &texW1, &texH1, &texarray1);
+	OpenGL::RGBtoChar(texarray1, texW1, texH1, &texCharArray1);
+
+
+
+	//генерируем ИД для текстуры
+	glGenTextures(1, &tableTexture);
+	//биндим айдишник, все что будет происходить с текстурой, будте происходить по этому ИД
+	glBindTexture(GL_TEXTURE_2D, tableTexture);
+
+	//загружаем текстуру в видеопямять, в оперативке нам больше  она не нужна
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texW1, texH1, 0, GL_RGBA, GL_UNSIGNED_BYTE, texCharArray1);
+
+	//отчистка памяти
+	free(texCharArray1);
+	free(texarray1);
+	//наводим шмон
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
 
 	//камеру и свет привязываем к "движку"
 	ogl->mainCamera = &camera;
@@ -448,41 +477,66 @@ void initRender(OpenGL *ogl)
 
 void drawCube(double size) {
 	double halfSize = size / 2.0;
+	glBindTexture(GL_TEXTURE_2D, tableTexture);
 	glBegin(GL_QUADS);
 	// Верхняя грань
+	glTexCoord2d(0, 0);
 	glVertex3d(-halfSize, halfSize, -halfSize);
+	glTexCoord2d(0, 1);
 	glVertex3d(halfSize, halfSize, -halfSize);
+	glTexCoord2d(1, 1);
 	glVertex3d(halfSize, halfSize, halfSize);
+	glTexCoord2d(1, 0);
 	glVertex3d(-halfSize, halfSize, halfSize);
 
 	// Нижняя грань
+	glTexCoord2d(0, 0);
 	glVertex3d(-halfSize, -halfSize, -halfSize);
+	glTexCoord2d(0, 1);
 	glVertex3d(halfSize, -halfSize, -halfSize);
+	glTexCoord2d(1, 1);
 	glVertex3d(halfSize, -halfSize, halfSize);
+	glTexCoord2d(1, 0);
 	glVertex3d(-halfSize, -halfSize, halfSize);
 
 	// Передняя грань
+	glTexCoord2d(0, 0);
 	glVertex3d(-halfSize, -halfSize, halfSize);
+	glTexCoord2d(0, 1);
 	glVertex3d(halfSize, -halfSize, halfSize);
+	glTexCoord2d(1, 1);
 	glVertex3d(halfSize, halfSize, halfSize);
+	glTexCoord2d(1, 0);
 	glVertex3d(-halfSize, halfSize, halfSize);
 
 	// Задняя грань
+	glTexCoord2d(0, 0);
 	glVertex3d(-halfSize, -halfSize, -halfSize);
+	glTexCoord2d(0, 1);
 	glVertex3d(halfSize, -halfSize, -halfSize);
+	glTexCoord2d(1, 1);
 	glVertex3d(halfSize, halfSize, -halfSize);
+	glTexCoord2d(1, 0);
 	glVertex3d(-halfSize, halfSize, -halfSize);
 
 	// Левая грань
+	glTexCoord2d(0, 0);
 	glVertex3d(-halfSize, -halfSize, -halfSize);
+	glTexCoord2d(0, 1);
 	glVertex3d(-halfSize, -halfSize, halfSize);
+	glTexCoord2d(1, 1);
 	glVertex3d(-halfSize, halfSize, halfSize);
+	glTexCoord2d(1, 0);
 	glVertex3d(-halfSize, halfSize, -halfSize);
 
 	// Правая грань
+	glTexCoord2d(0, 0);
 	glVertex3d(halfSize, -halfSize, -halfSize);
+	glTexCoord2d(0, 1);
 	glVertex3d(halfSize, -halfSize, halfSize);
+	glTexCoord2d(1, 1);
 	glVertex3d(halfSize, halfSize, halfSize);
+	glTexCoord2d(1, 0);
 	glVertex3d(halfSize, halfSize, -halfSize);
 	glEnd();
 }
@@ -492,6 +546,7 @@ void drawTable() {
 	glColor3d(0.6, 0.3, 0.1); // Цвет стола
 	glPushMatrix();
 	glTranslated(0.0, 0.0, -0.54);
+	glNormal3d(0, 0, 1);
 	glRotated(90.0, 1.0, 0.0, 0.0); // Поворачиваем стол, чтобы его верх стал параллельным плоскости XY
 	glScaled(15, 1, 10); // Увеличиваем площадь стола
 	drawCube(1.0); // Куб как основа стола
@@ -516,20 +571,23 @@ void drawTable() {
 void drawRoom() {
 	//Прорисовка пола для комнаты
 	glPushMatrix();
-	double A[] = { -20, -20, -10 };
-	double B[] = { -20, 20, -10 };
-	double C[] = { 20, 20, -10 };
-	double D[] = { 20, -20, -10 };
+	double A[] = { -30, -30, -10 };
+	double B[] = { -30, 30, -10 };
+	double C[] = { 30, 30, -10 };
+	double D[] = { 30, -30, -10 };
+	glBindTexture(GL_TEXTURE_2D, tableTexture);
 	glBegin(GL_QUADS);
-	glColor3d(0.0, 0.4, 0.0);
+	glColor3f(0.5f, 0.5f, 0.5f);
+	glTexCoord2d(0, 0);
 	glVertex3dv(A);
+	glTexCoord2d(0, 1);
 	glVertex3dv(B);
+	glTexCoord2d(1, 1);
 	glVertex3dv(C);
+	glTexCoord2d(1, 0);
 	glVertex3dv(D);
 	glEnd();
 	glPopMatrix();
-
-	//Делаю стенки для комнаты
 }
 
 void grani() {
