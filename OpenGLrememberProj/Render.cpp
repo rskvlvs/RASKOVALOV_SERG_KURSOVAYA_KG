@@ -300,6 +300,8 @@ void keyUpEvent(OpenGL *ogl, int key)
 
 GLuint texId;
 GLuint tableTexture; 
+GLuint zamokTexture;
+GLuint vodolazTexture;
 
 //выполняется перед первым рендером
 void initRender(OpenGL *ogl)
@@ -374,6 +376,66 @@ void initRender(OpenGL *ogl)
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
 	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+	
+
+	//Текстура замка
+	RGBTRIPLE* texarray2;
+
+	//массив символов, (высота*ширина*4      4, потомучто   выше, мы указали использовать по 4 байта на пиксель текстуры - R G B A)
+	char* texCharArray2;
+	int texW2, texH2;
+	//OpenGL::LoadBMP("texture.bmp", &texW, &texH, &texarray);
+	OpenGL::LoadBMP("zamokTexture.bmp", &texW2, &texH2, &texarray2);
+	OpenGL::RGBtoChar(texarray2, texW2, texH2, &texCharArray2);
+
+
+
+	//генерируем ИД для текстуры
+	glGenTextures(1, &zamokTexture);
+	//биндим айдишник, все что будет происходить с текстурой, будте происходить по этому ИД
+	glBindTexture(GL_TEXTURE_2D, zamokTexture);
+
+	//загружаем текстуру в видеопямять, в оперативке нам больше  она не нужна
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texW1, texH1, 0, GL_RGBA, GL_UNSIGNED_BYTE, texCharArray2);
+
+	//отчистка памяти
+	free(texCharArray2);
+	free(texarray2);
+	//наводим шмон
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
+	//Текстура водолаза 
+	RGBTRIPLE* texarray3;
+
+	//массив символов, (высота*ширина*4      4, потомучто   выше, мы указали использовать по 4 байта на пиксель текстуры - R G B A)
+	char* texCharArray3;
+	int texW3, texH3;
+	//OpenGL::LoadBMP("texture.bmp", &texW, &texH, &texarray);
+	OpenGL::LoadBMP("vodolazTexture.bmp", &texW3, &texH3, &texarray3);
+	OpenGL::RGBtoChar(texarray3, texW3, texH3, &texCharArray3);
+
+
+
+	//генерируем ИД для текстуры
+	glGenTextures(1, &vodolazTexture);
+	//биндим айдишник, все что будет происходить с текстурой, будте происходить по этому ИД
+	glBindTexture(GL_TEXTURE_2D, vodolazTexture);
+
+	//загружаем текстуру в видеопямять, в оперативке нам больше  она не нужна
+	glTexImage2D(GL_TEXTURE_2D, 0, GL_RGBA, texW1, texH1, 0, GL_RGBA, GL_UNSIGNED_BYTE, texCharArray3);
+
+	//отчистка памяти
+	free(texCharArray3);
+	free(texarray3);
+	//наводим шмон
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_S, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_WRAP_T, GL_REPEAT);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+	glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+
 
 	//камеру и свет привязываем к "движку"
 	ogl->mainCamera = &camera;
@@ -620,6 +682,7 @@ void aquar() {
 	//Вывожу подводного парня
 	glPushMatrix(); 
 	glColor3f(0.83f, 0.69f, 0.22f);
+	glBindTexture(GL_TEXTURE_2D, vodolazTexture);
 	glTranslated(-2, 3, 0);
 	glRotated(180, 0, 0, 1); 
 	glScalef(0.2f, 0.2f, 0.2f);
@@ -628,6 +691,7 @@ void aquar() {
 	//Вывожу замок
 	glPushMatrix();
 	glColor3f(0.5f, 0.5f, 0.5f);
+	glBindTexture(GL_TEXTURE_2D, zamokTexture);
 	glTranslated(-2, -2, 0);
 	glScalef(0.3f, 0.3f, 0.3f);
 	Zamok.DrawObj();
@@ -635,7 +699,7 @@ void aquar() {
 	// Сначала вывожу низ аквариума
 	// Задняя сторона
 	glBegin(GL_QUADS);
-	glColor3d(0.0, 0.0, 0.0);
+	glColor3f(0.5f, 0.5f, 0.5f);
 	glNormal3f(0.0f, 0.0f, 1.0f);
 	glVertex3f(-5.0f, -4.0f, 0.0f);
 	glVertex3f(5.0f, -4.0f, 0.0f);
